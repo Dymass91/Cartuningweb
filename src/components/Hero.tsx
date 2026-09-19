@@ -46,12 +46,20 @@ export default function Hero() {
     // Przewinięcie rusza na sekundę przed końcem filmu — ale tylko gdy film faktycznie się odtwarzał
     // (zegar liczony od zdarzenia 'playing'), a nie gdy currentTime skoczył np. po seek.
     let playedFrom = 0
-    const onPlaying = () => {
-      if (!playedFrom) playedFrom = performance.now()
-    }
-    video?.addEventListener('playing', onPlaying)
+    let fallbackTimer = 0
     const onTime = () => {
-      if (videoDone || !video || !video.duration || !playedFrom) return
+      if (videoDone || !video || !video.duration) return
+      if (!playedFrom && video.currentTime > 0.05) {
+        // początek odtwarzania liczony wstecz od aktualnego czasu — nie zależy od tego, czy
+        // zdarzenie 'playing' zdążyło się odpalić przed podpięciem nasłuchu
+        playedFrom = performance.now() - video.currentTime * 1000
+        // awaryjnie: przy bardzo wolnym łączu nie czekamy dłużej niż 12 s od startu filmu
+        fallbackTimer = window.setTimeout(() => {
+          videoDone = true
+          maybeScroll()
+        }, 12000)
+      }
+      if (!playedFrom) return
       const elapsed = (performance.now() - playedFrom) / 1000
       if (video.currentTime >= video.duration - 1 && elapsed >= video.duration - 2) {
         videoDone = true
@@ -71,7 +79,7 @@ export default function Hero() {
       window.clearTimeout(scrollTimer)
       tl.kill()
       video?.removeEventListener('timeupdate', onTime)
-      video?.removeEventListener('playing', onPlaying)
+      window.clearTimeout(fallbackTimer)
       inputs.forEach((e) => window.removeEventListener(e, cancel))
     }
   })

@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { isMobile, reducedMotion } from '../lib/env'
+import { isMobile, reducedMotion, slowConnection } from '../lib/env'
 import { CLIPS, type ClipName } from '../lib/clips'
 
 interface Props {
@@ -37,7 +37,7 @@ const VideoClip = forwardRef<HTMLVideoElement, Props>(function VideoClip(
   outerRef,
 ) {
   const inner = useRef<HTMLVideoElement | null>(null)
-  const [mobile] = useState(isMobile)
+  const [mobile] = useState(() => isMobile() || slowConnection())
   const [reduced] = useState(reducedMotion)
   const file = CLIPS[name]
 
