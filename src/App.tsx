@@ -23,6 +23,10 @@ import Contact from './components/Contact'
 export default function App() {
   useEffect(() => {
     // Efekty dzieci (ScrollTriggery, piny) są już utworzone — efekt rodzica biegnie ostatni.
+    // Po odświeżeniu zawsze startujemy od góry (intro hero), chyba że adres ma jawny hash.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    if (location.hash.length < 2) window.scrollTo(0, 0)
+
     let lenis: Lenis | null = null
     let tick: ((t: number) => void) | null = null
 
@@ -42,8 +46,9 @@ export default function App() {
       const hash = a.getAttribute('href') ?? ''
       if (hash.length < 2) return
       e.preventDefault()
+      // Adresu nie zapisujemy z hashem: odświeżenie strony ma zawsze zaczynać się od hero,
+      // a nie skakać do ostatnio klikniętej sekcji.
       scrollToHash(hash)
-      history.replaceState(null, '', hash)
     }
     document.addEventListener('click', onClick)
 

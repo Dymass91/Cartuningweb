@@ -43,10 +43,17 @@ export default function Hero() {
       cancelled = true
       window.clearTimeout(scrollTimer)
     }
-    // przewinięcie rusza na sekundę przed końcem filmu
+    // Przewinięcie rusza na sekundę przed końcem filmu — ale tylko gdy film faktycznie się odtwarzał
+    // (zegar liczony od zdarzenia 'playing'), a nie gdy currentTime skoczył np. po seek.
+    let playedFrom = 0
+    const onPlaying = () => {
+      if (!playedFrom) playedFrom = performance.now()
+    }
+    video?.addEventListener('playing', onPlaying)
     const onTime = () => {
-      if (videoDone || !video || !video.duration) return
-      if (video.currentTime >= video.duration - 1) {
+      if (videoDone || !video || !video.duration || !playedFrom) return
+      const elapsed = (performance.now() - playedFrom) / 1000
+      if (video.currentTime >= video.duration - 1 && elapsed >= video.duration - 2) {
         videoDone = true
         maybeScroll()
       }
@@ -64,6 +71,7 @@ export default function Hero() {
       window.clearTimeout(scrollTimer)
       tl.kill()
       video?.removeEventListener('timeupdate', onTime)
+      video?.removeEventListener('playing', onPlaying)
       inputs.forEach((e) => window.removeEventListener(e, cancel))
     }
   })
