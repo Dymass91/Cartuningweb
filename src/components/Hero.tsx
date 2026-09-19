@@ -8,69 +8,70 @@ export default function Hero() {
   const root = useRef<HTMLElement>(null)
 
   useMotion(root, ({ q, root }) => {
-    const tl = gsap.timeline({ paused: true })
-    tl.to(q('.hero__veil'), { opacity: 0, duration: 1.6, ease: 'power2.inOut' }, 0.1)
-      .fromTo(q('.hero__flash'), { opacity: 0 }, { opacity: 0.32, duration: 0.22, ease: 'power2.out' }, 0.25)
-      .to(q('.hero__flash'), { opacity: 0, duration: 1.1, ease: 'power2.inOut' }, 0.47)
-      .fromTo(q('.hero__eyebrow .line__in'), { yPercent: 110 }, { yPercent: 0, duration: 1, ease: 'expo.out' }, 0.55)
-      .fromTo(q('.hero__title .line__in'), { yPercent: 110 }, { yPercent: 0, duration: 1.25, ease: 'expo.out', stagger: 0.12 }, 0.7)
-      .fromTo(q('.hero__rule'), { scaleX: 0 }, { scaleX: 1, duration: 1.4, ease: 'expo.inOut' }, 0.9)
-      .fromTo(q('.hero__lede'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, 1.25)
-      .fromTo(q('.hero__cue'), { opacity: 0 }, { opacity: 1, duration: 1 }, 1.9)
+    // Krótkie otwarcie, niezależne od ładowania filmu: poster jest widoczny od razu,
+    // lekka zasłona opada w ~1 s, a typografia wjeżdża natychmiast.
+    const tl = gsap.timeline()
+    tl.to(q('.hero__veil'), { opacity: 0, duration: 1.2, ease: 'power2.out' }, 0)
+      .fromTo(q('.hero__eyebrow .line__in'), { yPercent: 110 }, { yPercent: 0, duration: 0.8, ease: 'expo.out' }, 0.05)
+      .fromTo(q('.hero__title .line__in'), { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, 0.1)
+      .fromTo(q('.hero__rule'), { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, 0.3)
+      .fromTo(q('.hero__sub .line__in'), { yPercent: 110 }, { yPercent: 0, duration: 0.8, ease: 'expo.out', stagger: 0.08 }, 0.4)
+      .fromTo(q('.hero__cue'), { opacity: 0 }, { opacity: 1, duration: 0.8 }, 0.9)
 
-    // Sekwencja rusza razem z filmem (lub po krótkim czasie, gdy autoplay jest wstrzymany).
     const video = root.querySelector('video')
-    let started = false
-    const go = () => {
-      if (started) return
-      started = true
-      tl.play()
-    }
-    video?.addEventListener('playing', go, { once: true })
-    const timer = window.setTimeout(go, 1600)
-
     // Gdy klatka się zatrzyma, a napisy są gotowe — strona sama przewija się do treści.
-    // Anuluje się, jeśli użytkownik zacznie przewijać samodzielnie.
+    // Anuluje się, gdy użytkownik zacznie przewijać sam lub wszedł na adres z kotwicą.
     let videoDone = false
     let textDone = false
-    let cancelled = false
+    let cancelled = location.hash.length > 1
     let scrollTimer = 0
+
+    // Autoplay zablokowany: pokazujemy końcową klatkę (kadr kompletny) i nie przewijamy strony.
+    const stalled = window.setTimeout(() => {
+      if (video && video.paused && video.currentTime === 0 && video.readyState >= 2 && video.duration) {
+        cancelled = true
+        video.currentTime = Math.max(0, video.duration - 0.05)
+      }
+    }, 2500)
     const maybeScroll = () => {
       if (!videoDone || !textDone || cancelled) return
       scrollTimer = window.setTimeout(() => {
         if (!cancelled && window.scrollY < 10) scrollToHash('#manifest')
-      }, 700)
+      }, 0)
     }
     const cancel = () => {
       cancelled = true
       window.clearTimeout(scrollTimer)
     }
-    const onVideoEnd = () => {
-      videoDone = true
-      maybeScroll()
+    // przewinięcie rusza na sekundę przed końcem filmu
+    const onTime = () => {
+      if (videoDone || !video || !video.duration) return
+      if (video.currentTime >= video.duration - 1) {
+        videoDone = true
+        maybeScroll()
+      }
     }
     tl.eventCallback('onComplete', () => {
       textDone = true
       maybeScroll()
     })
-    video?.addEventListener('ended', onVideoEnd, { once: true })
+    video?.addEventListener('timeupdate', onTime)
     const inputs = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
     inputs.forEach((e) => window.addEventListener(e, cancel, { passive: true, once: true }))
 
     return () => {
-      window.clearTimeout(timer)
+      window.clearTimeout(stalled)
       window.clearTimeout(scrollTimer)
-      video?.removeEventListener('playing', go)
-      video?.removeEventListener('ended', onVideoEnd)
+      tl.kill()
+      video?.removeEventListener('timeupdate', onTime)
       inputs.forEach((e) => window.removeEventListener(e, cancel))
     }
   })
 
   return (
     <section ref={root} id="top" className="hero" data-nav="dark" aria-labelledby="hero-title">
-      <VideoClip name="hero" eager rate={0.85} threshold={0.1} position="30% 55%" positionMobile="28% 55%" />
+      <VideoClip name="hero" eager threshold={0.1} position="56% 55%" positionMobile="44% 55%" />
       <div className="hero__scrim" />
-      <div className="hero__flash" aria-hidden="true" />
       <div className="hero__veil" aria-hidden="true" />
       <div className="hero__content">
         <p className="hero__eyebrow eyebrow">
@@ -81,7 +82,10 @@ export default function Hero() {
           <Line>REFINED.</Line>
         </h1>
         <span className="hero__rule" aria-hidden="true" />
-        <p className="hero__lede">Budujemy samochody, których nie da się pomylić z żadnymi innymi.</p>
+        <p className="hero__sub">
+          <Line>Engineering presence.</Line>
+          <Line>Building character.</Line>
+        </p>
       </div>
       <a className="hero__cue" href="#manifest">
         <span className="hero__cue-line" aria-hidden="true" />

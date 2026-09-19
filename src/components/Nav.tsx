@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ScrollTrigger } from '../lib/motion'
-import { getLenis } from '../lib/scroll'
+import { getLenis, isProgrammaticScroll } from '../lib/scroll'
 
 const LINKS = [
-  { href: '#work', label: 'Work' },
+  { href: '#featured', label: 'Work' },
   { href: '#services', label: 'Services' },
   { href: '#process', label: 'Process' },
   { href: '#contact', label: 'Contact' },
@@ -30,13 +30,25 @@ export default function Nav() {
     const dir = ScrollTrigger.create({
       start: 0,
       end: 'max',
-      onUpdate: (self) => setHidden(self.scroll() > 120 && self.direction === 1),
+      // przewijanie programowe (kotwice, autoprzewijanie hero) nie chowa nagłówka
+      onUpdate: (self) => {
+        if (!isProgrammaticScroll()) setHidden(self.scroll() > 120 && self.direction === 1)
+      },
     })
     ScrollTrigger.refresh()
     return () => {
       triggers.forEach((t) => t.kill())
       dir.kill()
     }
+  }, [])
+
+  // kursor przy górnej krawędzi odsłania schowany nagłówek
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (e.clientY < 90) setHidden(false)
+    }
+    window.addEventListener('pointermove', onMove, { passive: true })
+    return () => window.removeEventListener('pointermove', onMove)
   }, [])
 
   useEffect(() => {

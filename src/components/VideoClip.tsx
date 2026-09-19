@@ -1,12 +1,12 @@
 import { forwardRef, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { isMobile, reducedMotion } from '../lib/env'
-import type { ClipName } from '../lib/clips'
+import { CLIPS, type ClipName } from '../lib/clips'
 
 interface Props {
   name: ClipName
   /** hero: preload="auto", pozostałe: metadata */
   eager?: boolean
-  /** prędkość odtwarzania (delikatne spowolnienie dla krótkich ujęć) */
+  /** prędkość odtwarzania */
   rate?: number
   /** ułamek widoczności, od którego film startuje */
   threshold?: number
@@ -18,9 +18,19 @@ interface Props {
   className?: string
 }
 
+/** Rejestr klipów: w danym momencie gra tylko jeden. */
+const registry = new Set<HTMLVideoElement>()
+
+const playExclusive = (v: HTMLVideoElement) => {
+  registry.forEach((other) => {
+    if (other !== v) other.pause()
+  })
+  return v.play().catch(() => undefined)
+}
+
 /**
- * Pojedynczy klip: MP4 (główny) + WebM, poster, bez dźwięku, bez kontrolek,
- * odtwarzany raz po wejściu w viewport, pauza poza nim, stop na ostatniej klatce.
+ * Pojedynczy klip: MP4, poster, bez dźwięku i kontrolek, odtwarzany raz po wejściu
+ * w viewport, pauza poza nim, zatrzymanie na ostatniej klatce.
  */
 const VideoClip = forwardRef<HTMLVideoElement, Props>(function VideoClip(
   { name, eager = false, rate = 1, threshold = 0.5, manual = false, position = '50% 50%', positionMobile, className },
@@ -29,30 +39,33 @@ const VideoClip = forwardRef<HTMLVideoElement, Props>(function VideoClip(
   const inner = useRef<HTMLVideoElement | null>(null)
   const [mobile] = useState(isMobile)
   const [reduced] = useState(reducedMotion)
-  const suffix = mobile ? '-m' : ''
+  const file = CLIPS[name]
 
   useEffect(() => {
     const v = inner.current
     if (!v || reduced) return
+    registry.add(v)
     v.defaultPlaybackRate = rate
     v.playbackRate = rate
-    if (manual) return
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          if (!v.ended) v.play().catch(() => undefined)
-        } else v.pause()
-      },
-      { threshold },
-    )
-    io.observe(v)
-    return () => io.disconnect()
+    let io: IntersectionObserver | undefined
+    if (!manual) {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            if (!v.ended) void playExclusive(v)
+          } else v.pause()
+        },
+        { threshold },
+      )
+      io.observe(v)
+    }
+    return () => {
+      io?.disconnect()
+      registry.delete(v)
+    }
   }, [rate, manual, threshold, reduced])
 
-  const style = {
-    '--pos': position,
-    '--pos-m': positionMobile ?? position,
-  } as CSSProperties
+  const style = { '--pos': position, '--pos-m': positionMobile ?? position } as CSSProperties
 
   return (
     <video
@@ -63,7 +76,7 @@ const VideoClip = forwardRef<HTMLVideoElement, Props>(function VideoClip(
       }}
       className={`clip ${className ?? ''}`}
       style={style}
-      poster={`/posters/${name}.jpg`}
+      poster={`/posters/${file}${reduced ? '-still' : ''}.jpg`}
       muted
       playsInline
       preload={reduced ? 'none' : eager ? 'auto' : 'metadata'}
@@ -72,10 +85,10 @@ const VideoClip = forwardRef<HTMLVideoElement, Props>(function VideoClip(
       aria-hidden="true"
       tabIndex={-1}
     >
-      <source src={`/video/${name}${suffix}.mp4`} type="video/mp4" />
-      <source src={`/video/${name}${suffix}.webm`} type="video/webm" />
+      <source src={`/video/porsche/${file}${mobile ? '-m' : ''}.mp4`} type="video/mp4" />
     </video>
   )
 })
 
+export { playExclusive }
 export default VideoClip

@@ -3,10 +3,10 @@ import { gsap, revealLines, useMotion } from '../lib/motion'
 import Line from './Line'
 
 const STEPS = [
-  { n: '01', name: 'DISCOVERY', text: 'Poznajemy samochód, właściciela i kierunek projektu.' },
-  { n: '02', name: 'DESIGN', text: 'Budujemy moodboard, dobieramy części i projektujemy proporcje.' },
-  { n: '03', name: 'BUILD', text: 'Montaż, dopasowanie, strojenie i kontrola każdego detalu.' },
-  { n: '04', name: 'DELIVERY', text: 'Ostatnia inspekcja, sesja zdjęciowa i przekazanie gotowego auta.' },
+  { n: '01', name: 'DISCOVERY', text: 'Poznajemy samochód, właściciela i sposób, w jaki projekt będzie używany.' },
+  { n: '02', name: 'DIRECTION', text: 'Budujemy język wizualny, dobieramy części i ustalamy techniczny zakres realizacji.' },
+  { n: '03', name: 'ENGINEERING', text: 'Montaż, dopasowanie, strojenie i testowanie wszystkich układów.' },
+  { n: '04', name: 'DELIVERY', text: 'Kontrola końcowa, dokumentacja projektu i przekazanie gotowego samochodu.' },
 ]
 
 export default function Process() {
@@ -25,7 +25,7 @@ export default function Process() {
     q('.step').forEach((step) => {
       gsap.to(step, {
         scrollTrigger: {
-          trigger: step, start: 'top 58%', end: 'max',
+          trigger: step, start: 'top 60%', end: 'max',
           toggleClass: { targets: step, className: 'is-active' },
         },
       })
@@ -36,7 +36,7 @@ export default function Process() {
     <section ref={root} id="process" className="process dark" data-nav="dark" aria-labelledby="process-title">
       <div className="process__inner wrap">
         <header className="process__head">
-          <p className="eyebrow">06 / Process</p>
+          <p className="eyebrow">Process</p>
           <h2 id="process-title" className="process__title display">
             <Line>BUILT WITH</Line>
             <Line>INTENT</Line>

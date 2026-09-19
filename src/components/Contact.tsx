@@ -7,19 +7,19 @@ export default function Contact() {
   const root = useRef<HTMLElement>(null)
 
   useMotion(root, ({ q, root }) => {
-    revealLines(q('.contact__title .line__in'), root.querySelector('.contact__title')!, { start: 'top 85%' })
+    revealLines(q('.contact__title .line__in'), root.querySelector('.contact__title')!, { start: 'top 88%' })
     gsap.fromTo(
       q('.contact__fade'),
       { opacity: 0, y: 24 },
       { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out', stagger: 0.12,
-        scrollTrigger: { trigger: '.contact__body', start: 'top 85%', toggleActions: 'play none none reverse' } },
+        scrollTrigger: { trigger: '.contact__body', start: 'top 88%', toggleActions: 'play none none reverse' } },
     )
   })
 
   return (
-    <section ref={root} id="contact" className="contact dark" data-nav="dark" aria-labelledby="contact-title">
+    <section ref={root} id="contact" className="contact" data-nav="dark" aria-labelledby="contact-title">
       <div className="wrap contact__wrap">
-        <p className="eyebrow">10 / Contact</p>
+        <p className="eyebrow">Contact</p>
         <h2 id="contact-title" className="contact__title display">
           <Line>START</Line>
           <Line>A BUILD</Line>
@@ -47,7 +47,7 @@ export default function Contact() {
       </div>
       <footer className="footer wrap">
         <span>© {new Date().getFullYear()} Northline Atelier</span>
-        <span className="footer__note">Fikcyjne studio — strona demonstracyjna.</span>
+        <span className="footer__note">Demonstration brand — footage and specifications are illustrative.</span>
       </footer>
     </section>
   )
