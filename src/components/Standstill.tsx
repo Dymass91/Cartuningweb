@@ -14,7 +14,9 @@ export default function Standstill() {
       scrollTrigger: { trigger: root, start: 'top 78%', end: 'bottom 62%', scrub: 0.6 },
     })
     tl.fromTo(q('.standstill__title .line__in'), { yPercent: 110 }, { yPercent: 0, duration: 0.3, stagger: 0.1, ease: 'power2.out' }, 0)
-    q('.standstill__item').forEach((item, i) => {
+    // tylko wiersze z treścią; dekoracyjna linia zamykająca listę pozostaje statyczna
+    const items = q('.standstill__item:not(.standstill__item--end)')
+    items.forEach((item, i) => {
       const at = 0.3 + i * 0.2
       tl.fromTo(item.querySelector('.standstill__rule'), { scaleX: 0 }, { scaleX: 1, duration: 0.2 }, at)
         .fromTo(item.querySelector('.standstill__no'), { opacity: 0 }, { opacity: 1, duration: 0.15 }, at + 0.05)

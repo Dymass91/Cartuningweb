@@ -45,9 +45,9 @@ export default function App() {
       const hash = a.getAttribute('href') ?? ''
       if (hash.length < 2) return
       e.preventDefault()
-      // Adresu nie zapisujemy z hashem: odświeżenie strony ma zawsze zaczynać się od hero,
-      // a nie skakać do ostatnio klikniętej sekcji.
-      scrollToHash(hash)
+      // Hash trafia do adresu dopiero po dojściu do sekcji. Odświeżenie (F5) ignoruje go i startuje
+      // od hero (main.tsx), więc nie powoduje skoku.
+      scrollToHash(hash, false, true)
     }
     document.addEventListener('click', onClick)
 

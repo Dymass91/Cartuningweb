@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -7,17 +7,31 @@
     <meta name="description" content="Northline Atelier — niezależne studio projektowania, modyfikacji i budowy samochodów performance. Mechanika, proporcje i detal w jednym projekcie. Demonstracyjna marka." />
     <meta name="theme-color" content="#080908" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preload" as="image" href="/posters/01_hero_front_reveal.jpg" />
+    <!-- __SITE_URL__ podmienia vite.config.ts (SITE_URL) — adres bazowy zmieniasz w jednym miejscu -->
+    <link rel="canonical" href="__SITE_URL__/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Northline Atelier" />
+    <meta property="og:locale" content="pl_PL" />
     <meta property="og:title" content="Northline Atelier — Performance, refined." />
-    <meta property="og:description" content="Budujemy samochody, których nie da się pomylić z żadnymi innymi." />
-    <meta property="og:image" content="https://northlineatelier.com/og.jpg" />
+    <meta property="og:description" content="Niezależne studio projektowania, modyfikacji i budowy samochodów performance." />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:image" content="__SITE_URL__/og.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Czarne Porsche 911 w lesie — Northline Atelier" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Northline Atelier — Performance, refined." />
+    <meta name="twitter:description" content="Niezależne studio projektowania, modyfikacji i budowy samochodów performance." />
+    <meta name="twitter:image" content="__SITE_URL__/og.jpg" />
     <script>
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion')
+      // klasa 'motion' + preload właściwego posteru hero (przy reduced-motion pokazywany jest kadr -still)
+      var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (!reduced) document.documentElement.classList.add('motion')
+      var preload = document.createElement('link')
+      preload.rel = 'preload'
+      preload.as = 'image'
+      preload.href = '/posters/01_hero_front_reveal' + (reduced ? '-still' : '') + '.jpg'
+      document.head.appendChild(preload)
     </script>
   </head>
   <body>

@@ -32,9 +32,10 @@ export const cancelProgrammaticScroll = () => {
 /**
  * Przewija dokładnie do sekcji. Po zakończeniu ruchu sprawdza, czy layout (piny, fonty,
  * filmy) nie przesunął celu, i w razie potrzeby koryguje pozycję. Nowsze wywołanie
- * zawsze wygrywa ze starszym.
+ * zawsze wygrywa ze starszym. Przy updateUrl adres dostaje hash dopiero po dojściu do celu
+ * (replaceState nie wywołuje hashchange ani skoku, więc nie koliduje z Lenisem).
  */
-export function scrollToHash(hash: string, immediate = false) {
+export function scrollToHash(hash: string, immediate = false, updateUrl = false) {
   const el = hash === '#top' ? null : document.querySelector<HTMLElement>(hash)
   if (hash !== '#top' && !el) return
   const target = () => (el ? sectionY(el) : 0)
@@ -48,7 +49,11 @@ export function scrollToHash(hash: string, immediate = false) {
     const y = target()
     const verify = () => {
       if (mine !== token) return
-      if (attempt < 2 && Math.abs(target() - window.scrollY) > 3) go(attempt + 1, true)
+      if (attempt < 2 && Math.abs(target() - window.scrollY) > 3) {
+        go(attempt + 1, true)
+        return
+      }
+      if (updateUrl) history.replaceState(null, '', hash === '#top' ? location.pathname + location.search : hash)
     }
     if (instance) {
       instance.scrollTo(y, {
